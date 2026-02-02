@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h1>{{ group.name }}</h1>
+
+{% if msg %} <p class="pill">{{ msg }}</p>
+{% endif %}
+
+  <p class="meta">
+    {{ group.city }} · {{ group.sport }} · {% if group.is_private %}Privado{% else %}Público{% endif %}
+  </p>
+
+  <!-- MIEMBROS -->
+
+  <div class="card u-card-gap">
+    <h3>Miembros</h3>
+
+```
+{% if members and members|length > 0 %}
+  <ul class="list u-mt-10">
+    <template>
+      {% for m in members %}
+        <li class="list-item u-start">
+          <span>👤 {{ m }}</span>
+        </li>
+      {% endfor %}
+    </template>
+  </ul>
+{% else %}
+  <p class="meta">Aún no hay miembros.</p>
+{% endif %}
+```
+
+  </div>
+
+  <!-- QUEDADAS -->
+
+  <div class="card u-card-gap">
+    <h3>Quedadas próximas</h3>
+
+```
+{% if meetups and meetups|length > 0 %}
+  <ul class="list u-mt-10">
+    <template>
+      {% for m in meetups %}
+        {# Fecha robusta: datetime -> strftime; string -> tal cual #}
+        {% set starts_txt = (m.starts_at.strftime("%d/%m/%Y %H:%M") if m.starts_at and m.starts_at.strftime is defined else (m.starts_at or "—")) %}
+
+        {# Estado: badge texto #}
+        {% if m.status == "open" %}
+          {% set status_badge = "🟢 Abierta" %}
+        {% elif m.status == "done" %}
+          {% set status_badge = "✅ Hecha" %}
+        {% elif m.status == "cancelled" %}
+          {% set status_badge = "⛔ Cancelada" %}
+        {% else %}
+          {% set status_badge = "ℹ️ " ~ (m.status or "—") %}
+        {% endif %}
+
+        <li class="list-item u-between u-top">
+          <div class="meetup-left">
+            <strong>{{ starts_txt }}</strong>
+            <div class="meta">{{ m.meeting_point or "📍 Punto de encuentro por definir" }}</div>
+
+            <div class="meta u-mt-6">
+              <span class="pill pill--sm">{{ status_badge }}</span>
+
+              {% if m.level_tag %}
+                <span class="meta"> · Nivel: {{ m.level_tag }}</span>
+              {% endif %}
+
+              {% if m.pace_min and m.pace_max %}
+                <span class="meta">
+                  · Ritmo:
+                  {{ (m.pace_min//60) }}:{{ "%02d" % (m.pace_min%60) }}
+                  –
+                  {{ (m.pace_max//60) }}:{{ "%02d" % (m.pace_max%60) }}/km
+                </span>
+              {% endif %}
+
+              {% if m.capacity %}
+                <span class="meta"> · Plazas: {{ m.participants_count }} / {{ m.capacity }}</span>
+              {% else %}
+                <span class="meta"> · Apuntados: {{ m.participants_count }}</span>
+              {% endif %}
+            </div>
+
+            {% if m.notes %}
+              <div class="meta u-mt-6">📝 {{ m.notes }}</div>
+            {% endif %}
+          </div>
+
+          <!-- ACCIONES -->
+          <div class="u-flex u-col u-gap-8 u-end">
+            {% if not user_email %}
+              <a class="meta" href="/dev/quick-login">Inicia sesión (DEV)</a>
+
+            {% elif is_member is defined and not is_member %}
+              <button type="button" class="btn-disabled" disabled>🔒 Únete al grupo</button>
+
+            {% else %}
+              {% if m.status != "open" %}
+                <button type="button" class="btn-disabled" disabled>{{ status_badge }}</button>
+
+              {% elif m.capacity and m.participants_count >= m.capacity and not m.is_joined %}
+                <button type="button" class="btn-disabled" disabled>🚫 Completa</button>
+
+              {% elif m.is_joined %}
+                <button type="button" class="btn-disabled" disabled>✅ Apuntado</button>
+                <form method="post" action="/meetups/{{ m.id }}/leave-web" class="u-m-0">
+                  <button type="submit">❌ No voy</button>
+                </form>
+
+              {% else %}
+                <form method="post" action="/meetups/{{ m.id }}/join-web" class="u-m-0">
+                  <button type="submit">✅ Voy</button>
+                </form>
+              {% endif %}
+
+              {# Owner tools: solo creador de la quedada #}
+              {% if user_id is defined and m.created_by is defined and m.created_by == user_id and m.status == "open" %}
+                <div class="u-flex u-gap-8">
+                  <form method="post" action="/meetups/{{ m.id }}/done-web" class="u-m-0"
+                        onsubmit="return confirm('¿Marcar esta quedada como HECHA?');">
+                    <button type="submit">🏁 Hecha</button>
+                  </form>
+
+                  <form method="post" action="/meetups/{{ m.id }}/cancel-web" class="u-m-0"
+                        onsubmit="return confirm('¿Cancelar esta quedada?');">
+                    <button type="submit">⛔ Cancelar</button>
+                  </form>
+                </div>
+              {% endif %}
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </template>
+  </ul>
+{% else %}
+  <p class="meta">No hay quedadas próximas todavía.</p>
+{% endif %}
+```
+
+  </div>
+
+  <!-- UNIRSE AL GRUPO -->
+
+  <div class="cards u-card-gap">
+    {% if user_email %}
+      {% if is_member %}
+        <div class="card">
+          <p class="meta">✅ Ya eres miembro de este grupo.</p>
+        </div>
+      {% else %}
+        {% if not group.is_private %}
+          <form method="post" action="/groups/{{ group.id }}/join-web" class="u-m-0">
+            <button type="submit">✅ Unirme al grupo</button>
+          </form>
+        {% else %}
+          <div class="card">
+            <h3>Unirse con invitación</h3>
+            <p class="meta">Pega el token de invitación para entrar.</p>
+
+```
+        <form method="post" action="/groups/{{ group.id }}/join-invite-web" class="filters">
+          <input name="token" placeholder="Token de invitación" required>
+          <button type="submit">Unirme</button>
+        </form>
+      </div>
+    {% endif %}
+  {% endif %}
+{% else %}
+  <div class="card">
+    <p>Necesitas sesión para unirte. Usa <a href="/dev/quick-login">Acceso DEV</a>.</p>
+  </div>
+{% endif %}
+
+{% if dev and user_email %}
+  <div class="card">
+    <h3>DEV tools</h3>
+    <p class="meta">Atajos para pruebas durante desarrollo.</p>
+    <form method="post" action="/groups/{{ group.id }}/create-invite-web" class="u-m-0">
+      <button type="submit">🔑 Generar invitación (si eres owner)</button>
+    </form>
+  </div>
+{% endif %}
+```
+
+  </div>
+
+<a href="/groups">← Volver</a>
+{% endblock %}

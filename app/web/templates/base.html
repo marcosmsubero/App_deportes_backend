@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ title or "App Deportes" }}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🏃‍♂️ App Deportes</div>
+    <nav class="nav">
+      <a href="/">Inicio</a>
+      <a href="/groups">Grupos</a>
+
+      {% if user_email %}
+        <a href="/dashboard">Mi panel</a>
+        <span class="pill">✅ {{ user_email }}</span>
+        {% if dev %}
+          <a href="/dev/logout">Salir DEV</a>
+        {% endif %}
+      {% else %}
+        <a href="/login">Login</a>
+        {% if dev %}
+          <a href="/dev/quick-login">Acceso DEV</a>
+        {% endif %}
+      {% endif %}
+    </nav>
+
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Mi panel</h1>
+
+  <div class="card" style="margin:14px 0;">
+    <h3>Mis grupos</h3>
+    {% if my_groups and my_groups|length > 0 %}
+      <ul class="list" style="margin-top:10px;">
+        {% for g in my_groups %}
+          <li class="list-item" style="justify-content:space-between;">
+            <div>
+              <strong>{{ g.name }}</strong>
+              <div class="meta">{{ g.city }} · {{ g.sport }} · {% if g.is_private %}Privado{% else %}Público{% endif %}</div>
+            </div>
+            <a href="/groups/{{ g.id }}">Ver</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="meta">Aún no perteneces a ningún grupo.</p>
+    {% endif %}
+  </div>
+
+  <div class="card" style="margin:14px 0;">
+    <h3>Próximas quedadas donde voy</h3>
+
+    {% if my_meetups and my_meetups|length > 0 %}
+      <ul class="list" style="margin-top:10px;">
+        {% for row in my_meetups %}
+          {% set m = row[0] %}
+          {% set g = row[1] %}
+          <li class="list-item" style="justify-content:space-between; align-items:flex-start;">
+            <div>
+              <strong>{{ m.starts_at.strftime("%d/%m/%Y %H:%M") }}</strong>
+              <div class="meta">{{ g.name }} · {{ m.meeting_point }}</div>
+              <div class="meta">Estado: {{ m.status }}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <a href="/groups/{{ g.id }}">Grupo</a>
+              <form method="post" action="/meetups/{{ m.id }}/leave-web" style="margin:0;">
+                <button type="submit">❌ No voy</button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="meta">No estás apuntado a ninguna quedada próxima.</p>
+    {% endif %}
+  </div>
+
+  <a href="/groups">Explorar grupos</a>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Crear grupo</h1>
+
+  {% if not user_email %}
+    <p>Necesitas sesión. Usa <a href="/dev/quick-login">Acceso DEV</a>.</p>
+  {% else %}
+    <form method="post" class="filters">
+      <input name="name" placeholder="Nombre del grupo" required>
+      <input name="sport" placeholder="Deporte (running, ciclismo...)" required>
+      <input name="city" placeholder="Ciudad" required>
+
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" name="is_private">
+        Privado (requiere invitación)
+      </label>
+
+      <button type="submit">Crear</button>
+    </form>
+  {% endif %}
+
+  <a href="/groups">← Volver</a>
+{% endblock %}

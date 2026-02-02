@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Grupos</h1>
+
+  {% if msg %}
+    <p class="pill">{{ msg }}</p>
+  {% endif %}
+
+  <div class="cards" style="margin: 12px 0;">
+    <a class="card" href="/groups/new">➕ Crear grupo</a>
+  </div>
+
+  <form method="get" class="filters">
+    <input name="city" placeholder="Ciudad" value="{{ city or '' }}">
+    <input name="sport" placeholder="Deporte (running, ciclismo...)" value="{{ sport or '' }}">
+    <button type="submit">Filtrar</button>
+  </form>
+
+  {% if groups %}
+    <ul class="list">
+      {% for g in groups %}
+        <li class="list-item">
+          <div>
+            <strong>{{ g.name }}</strong>
+            <div class="meta">
+              {{ g.city }} · {{ g.sport }} · {% if g.is_private %}Privado{% else %}Público{% endif %}
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <a href="/groups/{{ g.id }}">Ver</a>
+
+            {% if user_email %}
+              {% if not g.is_private %}
+                <form method="post" action="/groups/{{ g.id }}/join-web" style="margin:0;">
+                  <button type="submit">Unirme</button>
+                </form>
+              {% else %}
+                <span class="meta">Privado (inv.)</span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No hay grupos con esos filtros.</p>
+  {% endif %}
+{% endblock %}

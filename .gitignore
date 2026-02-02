@@ -1,0 +1,36 @@
+# ======================
+# Secrets & environment
+# ======================
+.env
+.env.*
+*.pem
+*.key
+
+# ======================
+# Virtual environments
+# ======================
+venv/
+.venv/
+
+# ======================
+# Databases
+# ======================
+*.db
+*.db.bak
+*.sqlite
+*.sqlite3
+
+# ======================
+# Python cache
+# ======================
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# ======================
+# IDEs & OS
+# ======================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
